@@ -27,11 +27,23 @@
   *{box-sizing:border-box;margin:0;padding:0;}
 
   html,body{
-    width:1920px;
-    height:1080px;
+    position:fixed;
+    top:0; left:0;
+    width:100%;
+    height:100%;
     overflow:hidden;
+    overscroll-behavior:none;
     background:var(--navy-deep);
     font-family:'Cinzel',serif;
+  }
+
+  /* fixed 1920x1080 design canvas, scaled to whatever screen it runs on */
+  #stage{
+    position:absolute; top:50%; left:50%;
+    width:1920px; height:1080px;
+    transform:translate(-50%,-50%) scale(var(--stage-scale,1));
+    transform-origin:center center;
+    overflow:hidden;
   }
 
   /* language visibility (works anywhere in the doc, incl. modal) */
@@ -69,17 +81,21 @@
 
   /* ---------- header (shared look, two sizes) ---------- */
   .header-bar{
-    position:absolute; top:28px; left:24px; right:24px;
-    background:var(--navy-panel); border:1px solid var(--hairline); border-radius:14px;
+    position:absolute; top:0; left:0; right:0;
+    background:var(--navy-panel); border:none; border-radius:0;
     display:flex; align-items:center; padding:0 34px; gap:26px;
     box-shadow:0 12px 30px rgba(0,0,0,0.28);
   }
-  .header-bar::after{
+  #screen-landing .header-bar{
+    top:28px; left:24px; right:24px; height:150px;
+    border:1px solid var(--hairline); border-radius:14px;
+    opacity:0; animation:fadeDown .9s ease forwards; animation-delay:.15s;
+  }
+  #screen-landing .header-bar::after{
     content:""; position:absolute; left:34px; right:34px; bottom:0; height:1px;
     background:linear-gradient(90deg, rgba(201,160,108,0) 0%, rgba(201,160,108,0.28) 50%, rgba(201,160,108,0) 100%);
   }
-  #screen-landing .header-bar{ height:150px; opacity:0; animation:fadeDown .9s ease forwards; animation-delay:.15s; }
-  #screen-content .header-bar{ height:118px; padding:0 30px; gap:22px; }
+  #screen-content .header-bar{ height:118px; padding:0 30px; gap:22px; background:#0d1a2b; border:none; }
 
   .logo{ flex:0 0 auto; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.35)); }
   #screen-landing .logo{ width:96px; height:96px; }
@@ -126,30 +142,22 @@
   @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
 
   /* ---------- content screen chrome ---------- */
-  .back-btn{
-    position:absolute; top:28px; right:24px;
-    display:flex; align-items:center; gap:8px;
-    background:var(--navy-panel); border:1px solid var(--hairline); border-radius:10px;
-    padding:0 18px; height:44px; margin-top:0;
-    font-family:'Playfair Display',serif; font-weight:600; font-size:14px; letter-spacing:0.04em;
-    color:var(--ink-faint); cursor:pointer; transition:color .2s ease, border-color .2s ease;
+  .home-btn{
+    position:fixed; left:50%; bottom:30px; transform:translateX(-50%);
+    display:flex; align-items:center; gap:11px; z-index:30;
+    background:linear-gradient(180deg, rgba(227,193,147,0.22), rgba(227,193,147,0.10));
+    border:1px solid rgba(227,193,147,0.45); border-radius:999px;
+    padding:0 32px; height:56px;
+    font-family:'Playfair Display',serif; font-weight:600; font-size:16px; letter-spacing:0.05em;
+    color:var(--gold-bright); cursor:pointer;
+    box-shadow:0 14px 34px rgba(0,0,0,0.38);
+    transition:background .2s ease, border-color .2s ease, transform .18s ease;
   }
-  .back-btn:hover{ color:var(--gold-bright); border-color:rgba(227,193,147,0.6); }
-  .back-btn svg{ width:16px; height:16px; }
+  .home-btn:hover{ background:linear-gradient(180deg, rgba(227,193,147,0.32), rgba(227,193,147,0.16)); border-color:rgba(227,193,147,0.78); }
+  .home-btn:active{ transform:translateX(-50%) scale(0.97); }
+  .home-btn svg{ width:21px; height:21px; flex:0 0 auto; }
 
-  .lang-toggle{
-    position:absolute; top:82px; right:24px; display:flex; gap:6px;
-    background:var(--navy-panel); border:1px solid var(--hairline); border-radius:10px; padding:6px; z-index:20;
-  }
-  .lang-tbtn{
-    font-family:'Playfair Display',serif; font-weight:600; font-size:14px; letter-spacing:0.06em;
-    color:var(--ink-faint); background:transparent; border:none; border-radius:6px;
-    padding:8px 15px; cursor:pointer; transition:all .2s ease;
-  }
-  .lang-tbtn.active{ background:linear-gradient(180deg, rgba(227,193,147,0.22), rgba(227,193,147,0.12)); color:var(--gold-bright); }
-  .lang-tbtn:hover{ color:var(--gold-bright); }
-
-  .page-head{ position:absolute; top:164px; left:24px; right:24px; display:flex; align-items:flex-end; justify-content:space-between; }
+  .page-head{ position:absolute; top:140px; left:24px; right:24px; display:flex; align-items:flex-end; justify-content:space-between; }
   .page-title{ font-family:'Playfair Display',serif; font-weight:700; font-size:34px; letter-spacing:0.02em; text-transform:uppercase; color:var(--ink-soft); text-shadow:0 3px 16px rgba(0,0,0,0.4); }
   .page-title .accent{ color:var(--gold-bright); }
   .page-meta{ display:flex; align-items:center; gap:14px; }
@@ -365,13 +373,13 @@
   .modal-pending::before{ content:"⏳"; font-style:normal; }
 
   /* ================= timeline grid (standards & km) — horizontal kiosk layout ================= */
-  .tl-grid-wrap{ position:absolute; top:196px; bottom:34px; left:24px; right:24px; overflow:hidden; }
-  .tl-grid{ display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(2, 1fr); gap:18px; width:100%; height:100%; }
+  .tl-grid-wrap{ position:absolute; top:200px; bottom:100px; left:24px; right:24px; overflow:hidden; }
+  .tl-grid{ display:grid; grid-template-columns:repeat(3, 1fr); grid-template-rows:repeat(2, 322px); align-content:center; gap:20px; width:100%; height:100%; }
 
   .tl-card{
-    position:relative; display:flex; flex-direction:column; gap:10px;
+    position:relative; display:flex; flex-direction:column; gap:8px;
     background:linear-gradient(155deg, rgba(20,32,50,0.62) 0%, rgba(10,18,30,0.72) 100%);
-    border:1px solid var(--hairline); border-radius:14px; padding:20px 22px 16px;
+    border:1px solid var(--hairline); border-radius:14px; padding:16px 20px 14px;
     opacity:0; transform:translateY(18px); animation:tlCardIn .6s cubic-bezier(.22,.68,.32,1) forwards;
     overflow:hidden;
   }
@@ -381,18 +389,17 @@
   @keyframes tlCardIn{ to{ opacity:1; transform:translateY(0); } }
 
   .tl-card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
-  .tl-num{ font-family:'Playfair Display',serif; font-weight:700; font-size:12px; letter-spacing:0.16em; color:var(--gold); opacity:0.7; }
-  .tl-year{ font-family:'Playfair Display',serif; font-weight:700; font-size:30px; color:var(--gold-bright); line-height:1; margin-top:2px; }
-  .tl-year .yr-suffix{ font-size:13px; font-weight:600; color:var(--ink-dim); margin-left:3px; letter-spacing:0.05em; }
-  .tl-icon{ width:34px; height:34px; color:var(--gold); opacity:0.8; flex:0 0 auto; }
+  .tl-year{ font-family:'Playfair Display',serif; font-weight:700; font-size:26px; color:var(--gold-bright); line-height:1; white-space:nowrap; }
+  .tl-year .yr-suffix{ font-size:13px; font-weight:600; color:var(--ink-dim); margin-left:6px; letter-spacing:0.05em; text-transform:uppercase; }
+  .tl-icon{ width:30px; height:30px; color:var(--gold); opacity:0.8; flex:0 0 auto; }
   .tl-icon svg{ width:100%; height:100%; }
 
   .tl-standard{ font-family:'Playfair Display',serif; font-weight:600; font-size:13px; color:var(--ink-soft); letter-spacing:0.02em; }
-  .tl-title{ font-family:'Playfair Display',serif; font-weight:600; font-size:16px; line-height:1.28; color:var(--ink-soft); }
-  .tl-desc{ font-family:'Cormorant Garamond',serif; font-weight:500; font-size:14.5px; line-height:1.42; color:var(--ink-faint); flex:1; overflow:hidden; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; }
+  .tl-title{ font-family:'Playfair Display',serif; font-weight:600; font-size:15px; line-height:1.26; color:var(--ink-soft); }
+  .tl-desc{ font-family:'Cormorant Garamond',serif; font-weight:500; font-size:14px; line-height:1.4; color:var(--ink-faint); flex:1; min-height:0; overflow:hidden; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; }
 
-  .tl-bottom{ margin-top:auto; padding-top:8px; border-top:1px solid rgba(201,160,108,0.16); display:flex; align-items:flex-end; justify-content:space-between; gap:10px; }
-  .tl-km{ font-family:'Playfair Display',serif; font-weight:700; font-size:24px; color:var(--gold-bright); line-height:1; }
+  .tl-bottom{ margin-top:auto; padding-top:10px; border-top:1px solid rgba(201,160,108,0.16); display:flex; align-items:flex-end; justify-content:space-between; gap:10px; }
+  .tl-km{ font-family:'Playfair Display',serif; font-weight:700; font-size:22px; color:var(--gold-bright); line-height:1; }
   .tl-km .km-unit{ font-size:12px; font-weight:600; color:var(--ink-dim); margin-left:4px; letter-spacing:0.05em; }
   .tl-km-wrap{ display:flex; flex-direction:column; gap:5px; flex:1; }
   .tl-km-delta{ font-family:'Cormorant Garamond',serif; font-weight:500; font-style:italic; font-size:12px; }
@@ -405,12 +412,10 @@
   .tl-connector{ position:absolute; top:50%; right:-18px; width:18px; height:1px; background:linear-gradient(90deg, var(--hairline), rgba(201,160,108,0)); z-index:1; }
   .tl-grid .tl-card:nth-child(3n)::after{ display:none; }
 
-  @media (max-width:1400px){
-    .tl-grid{ grid-template-columns:repeat(2, 1fr); grid-template-rows:repeat(3, 1fr); }
-  }
 </style>
 </head>
 <body>
+<div id="stage">
 
   <!-- ============ SCREEN 1: LANDING ============ -->
   <div class="screen" id="screen-landing">
@@ -468,34 +473,21 @@
       </div>
     </header>
 
-    <div class="back-btn" onclick="goToLanding()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      <span data-t="uz">Bosh sahifa</span><span data-t="ru">На главную</span><span data-t="en">Home</span>
-    </div>
-
-    <div class="lang-toggle">
-      <button class="lang-tbtn" data-lang-btn="uz" onclick="setLang('uz')">UZ</button>
-      <button class="lang-tbtn" data-lang-btn="ru" onclick="setLang('ru')">RU</button>
-      <button class="lang-tbtn" data-lang-btn="en" onclick="setLang('en')">EN</button>
-    </div>
-
     <div class="page-head">
       <div class="page-title">
         <span data-t="uz"><span class="accent">Yoʻl qurilish sohasidagi standartlar</span></span>
         <span data-t="ru"><span class="accent">Стандарты дорожно-строительной отрасли</span></span>
         <span data-t="en"><span class="accent">Standards in the Road Construction Sector</span></span>
       </div>
-      <div class="page-meta">
-        <span class="section-tab">
-          <span data-t="uz">Standartlar va statistika</span>
-          <span data-t="ru">Стандарты и статистика</span>
-          <span data-t="en">Standards and statistics</span>
-        </span>
-      </div>
     </div>
 
     <div class="tl-grid-wrap">
       <div class="tl-grid" id="timelineTrack"></div>
+    </div>
+
+    <div class="home-btn" onclick="goToLanding()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.6L12 3l9 7.6"/><path d="M5.6 9.6V20h12.8V9.6"/><path d="M9.8 20v-5.6h4.4V20"/></svg>
+      <span data-t="uz">Bosh sahifa</span><span data-t="ru">На главную</span><span data-t="en">Home</span>
     </div>
   </div>
 
@@ -507,6 +499,8 @@
       <img id="lightboxImg" src="" alt="" draggable="false">
     </div>
   </div>
+
+</div><!-- /#stage -->
 
 <script>
   const TIMELINE_DATA = [{"num": "01", "year": "1995", "standard_uz": "QMQ 2.05.02-95", "standard_ru": "КМК 2.05.02-95", "standard_en": "QMQ 2.05.02-95", "title_uz": "Birinchi milliy qurilish meʼyori tasdiqlandi", "title_ru": "Утверждена первая национальная строительная норма", "title_en": "The first national construction standard was approved", "desc_uz": "Mustaqillikdan soʻng Oʻzbekistonda avtomobil yoʻllarini loyihalash va qurish boʻyicha birinchi milliy qurilish meʼyori va qoidalari (QMQ) qabul qilindi. Ushbu hujjat sovet davridagi umumittifoq SNiP normalari oʻrnini bosib, yoʻl qatlamlari qalinligi, yotqizish texnologiyasi va sifat talablarini mustaqil davlat andozalari asosida belgiladi — mamlakat oʻz yoʻl qurilish tizimini shakllantirishning boshlanishi boʻldi.", "desc_ru": "После обретения независимости в Узбекистане были приняты первые национальные строительные нормы и правила (КМК) по проектированию и строительству автомобильных дорог. Документ заменил союзные нормы СНиП советского периода и установил толщину дорожных слоёв, технологию укладки и требования к качеству на основе собственных государственных стандартов — это стало началом формирования самостоятельной дорожно-строительной системы страны.", "desc_en": "After independence, Uzbekistan adopted its first national construction norms and rules (QMQ) for designing and building automobile roads. The document replaced the Soviet-era all-union SNiP norms and set pavement layer thicknesses, laying technology and quality requirements on the basis of the country's own state standards — marking the start of an independent national road-construction system.", "km": 43483, "delta": 0}, {"num": "02", "year": "2007", "standard_uz": "SHNQ 2.05.02-2007", "standard_ru": "ШНК 2.05.02-2007", "standard_en": "ShNQ 2.05.02-2007", "title_uz": "Meʼyor yangilangan tahrirda qayta tasdiqlandi", "title_ru": "Норма принята в обновлённой редакции", "title_en": "The standard was re-issued in an updated edition", "desc_uz": "1995-yilgi QMQ oʻn ikki yillik amaliyot natijalari asosida qayta koʻrib chiqilib, Shahar qurilish normalari va qoidalari (SHNQ) tizimiga oʻtkazildi. Yangi tahrirda transport oqimi intensivligi ortishi, yuk mashinalari ogʻirligining oshishi va iqlim sharoitlari hisobga olingan holda yoʻl konstruksiyalariga qoʻyiladigan talablar aniqlashtirildi.", "desc_ru": "Норма 1995 года была пересмотрена по итогам двенадцати лет практики и переведена в систему Строительных норм и правил (ШНК). В новой редакции уточнены требования к дорожным конструкциям с учётом возросшей интенсивности транспортного потока, увеличения массы грузовых автомобилей и климатических условий.", "desc_en": "The 1995 standard was revised after twelve years of practical use and transferred into the Construction Norms and Rules (ShNQ) system. The updated edition refined requirements for road structures to account for growing traffic intensity, heavier freight vehicles and climatic conditions.", "km": 42530, "delta": -953}, {"num": "03", "year": "2018", "standard_uz": "OʻzDST (ISO, EN, AASHTO, DIN)", "standard_ru": "OʻzDST (ISO, EN, AASHTO, DIN)", "standard_en": "OʻzDST (ISO, EN, AASHTO, DIN)", "title_uz": "Xalqaro standartlar bilan uygʻunlashtirish boshlandi", "title_ru": "Началась гармонизация с международными стандартами", "title_en": "Harmonization with international standards began", "desc_uz": "Oʻzbekiston davlat standartlari (OʻzDST) tizimini xalqaro ISO, Yevropa EN, Amerika AASHTO va Germaniya DIN standartlari bilan uygʻunlashtirish boʻyicha keng koʻlamli ish boshlandi. Bu qadam xorijiy investorlar va pudratchilar uchun talablarni tushunarli qilish, materiallar va texnologiyalar sinovini xalqaro laboratoriya usullariga moslashtirishga xizmat qildi.", "desc_ru": "Начата масштабная работа по гармонизации системы государственных стандартов Узбекистана (OʻzDST) с международными ISO, европейскими EN, американскими AASHTO и немецкими DIN стандартами. Этот шаг сделал требования понятными для иностранных инвесторов и подрядчиков и приблизил методы испытания материалов и технологий к международной лабораторной практике.", "desc_en": "Large-scale work began to harmonize Uzbekistan's system of state standards (OʻzDST) with international ISO, European EN, American AASHTO and German DIN standards. This step made requirements clear to foreign investors and contractors and brought material and technology testing methods closer to international laboratory practice.", "km": 42869, "delta": 339}, {"num": "04", "year": "2023", "standard_uz": "SHNQ 2.05.02-2023", "standard_ru": "ШНК 2.05.02-2023", "standard_en": "ShNQ 2.05.02-2023", "title_uz": "Yangi avlod asfaltbeton qoplamalari joriy etildi", "title_ru": "Внедрены асфальтобетонные покрытия нового поколения", "title_en": "New-generation asphalt-concrete pavements were introduced", "desc_uz": "Norma yana bir bor yangilanib, yuqori haroratga chidamli va deformatsiyaga bardoshli yangi avlod asfaltbeton aralashmalarini (polimer-modifikatsiyalangan bitum asosida) qoʻllash talablari kiritildi. Bu yoʻl qoplamasining xizmat muddatini uzaytirish va yozgi issiq iqlim sharoitida yoʻl yuzasi deformatsiyasini kamaytirishga qaratilgan.", "desc_ru": "Норма вновь была обновлена — введены требования по применению асфальтобетонных смесей нового поколения (на основе полимерно-модифицированного битума), устойчивых к высоким температурам и деформации. Мера направлена на увеличение срока службы дорожного покрытия и снижение колееобразования в условиях жаркого летнего климата.", "desc_en": "The standard was updated again, introducing requirements for new-generation asphalt-concrete mixes (based on polymer-modified bitumen) resistant to high temperatures and deformation. The measure aims to extend pavement service life and reduce rutting under hot summer climate conditions.", "km": 42861, "delta": -8}, {"num": "05", "year": "2025", "standard_uz": "IQN 86-2025", "standard_ru": "ИКН 86-2025", "standard_en": "IQN 86-2025", "title_uz": "Pulli yoʻllar uchun normalar ishlab chiqildi", "title_ru": "Разработаны нормы для платных дорог", "title_en": "Standards for toll roads were developed", "desc_uz": "Pulli avtomobil yoʻllarini loyihalash, qurish va ulardan foydalanish tartibini tartibga soluvchi maxsus idoraviy qurilish normasi (IQN) ishlab chiqildi. Hujjat toʻlov infratuzilmasi, xizmat koʻrsatish darajasi va yoʻl sifati boʻyicha alohida — odatdagi umumfoydalanish yoʻllariga qaraganda yuqoriroq — talablarni belgilaydi.", "desc_ru": "Разработана специальная ведомственная строительная норма (ИКН), регулирующая порядок проектирования, строительства и эксплуатации платных автомобильных дорог. Документ устанавливает отдельные — более высокие, чем для обычных дорог общего пользования — требования к платёжной инфраструктуре, уровню обслуживания и качеству покрытия.", "desc_en": "A special departmental construction standard (IQN) was developed, regulating the design, construction and operation of toll roads. The document sets separate requirements — higher than for ordinary public roads — for toll infrastructure, service level and pavement quality.", "km": 42371, "delta": -490}, {"num": "06", "year": "2026", "standard_uz": "SUPERPAVE", "standard_ru": "SUPERPAVE", "standard_en": "SUPERPAVE", "title_uz": "SUPERPAVE texnologiyasi asosida birinchi pulli yoʻl qurildi", "title_ru": "Построена первая платная дорога по технологии SUPERPAVE", "title_en": "The first toll road was built using SUPERPAVE technology", "desc_uz": "AQSHda ishlab chiqilgan SUPERPAVE (Superior Performing Asphalt Pavements) loyihalash uslubi asosida mamlakatdagi birinchi pulli avtomobil yoʻli qurib bitkazildi. Uslub asfaltbeton aralashmasini mahalliy iqlim va trafik yuklamasiga qarab ilmiy hisob-kitob orqali tanlashga imkon berib, qoplamaning chidamliligini sezilarli oshiradi.", "desc_ru": "На основе разработанной в США методологии проектирования SUPERPAVE (Superior Performing Asphalt Pavements) в стране завершено строительство первой платной автомобильной дороги. Методология позволяет подбирать состав асфальтобетонной смеси научным расчётом с учётом местного климата и транспортной нагрузки, значительно повышая долговечность покрытия.", "desc_en": "Based on the US-developed SUPERPAVE (Superior Performing Asphalt Pavements) design methodology, the country completed construction of its first toll road. The methodology allows the asphalt-concrete mix composition to be selected through scientific calculation based on local climate and traffic load, significantly improving pavement durability.", "km": 42371, "delta": 0}];
@@ -552,10 +546,7 @@
     return `
       <div class="tl-card">
         <div class="tl-card-top">
-          <div>
-            <div class="tl-num">${d.num}</div>
-            <div class="tl-year">${d.year}<span class="yr-suffix">${block('-YIL','ГОД','')}</span></div>
-          </div>
+          <div class="tl-year">${d.year}<span class="yr-suffix"><span data-t="uz">-yil</span><span data-t="ru">год</span></span></div>
           <div class="tl-icon">${STAGE_ICONS[idx % STAGE_ICONS.length]}</div>
         </div>
         <div class="tl-standard">${block(d.standard_uz, d.standard_ru, d.standard_en)}</div>
@@ -723,6 +714,14 @@
       if(e.touches.length === 0) lbDragging = false;
     }, { passive:true });
   });
+
+  function fitStage(){
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    document.documentElement.style.setProperty('--stage-scale', scale);
+  }
+  window.addEventListener('resize', fitStage);
+  window.addEventListener('orientationchange', fitStage);
+  fitStage();
 
   renderTimeline();
   setLang('uz');
